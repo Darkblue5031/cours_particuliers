@@ -4,7 +4,7 @@
 Rédiger du code proprement est crucial pour tout développeur Go. Un code propre est plus facile à lire, à maintenir, et à déboguer, tout en facilitant la collaboration avec d'autres développeurs. Voici quelques conseils pour rédiger du code propre en Go.
 
 ## Utiliser des Noms Significatifs
-- **Variables**: Choisissez des noms de variables clairs et significatifs. Par exemple, `numberOfStudents` est plus explicite que `n`.
+- **Variables**: Choisissez des noms de variables clairs et significatifs. Par exemple, `numberOfStudents` est plus explicite que `n`. (Pour plus de clareté, la **snake_case** est utilisable.)
 
 - **Fonctions**: Les noms de fonctions doivent indiquer leur but. Par exemple, `CalculateAverage` est plus clair que `calc`.
 
