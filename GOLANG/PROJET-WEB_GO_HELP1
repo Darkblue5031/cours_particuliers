@@ -1,0 +1,163 @@
+# Guide de Réalisation : Liste de Courses en Web App avec Go
+
+## Étape 1 : Initialisation du Projet
+
+1. **Créez un répertoire pour le projet** : 
+   - Nommez le répertoire `pro.web_golang(1)`.
+
+2. **Initialisez un dépôt Git** :
+   - Dans le répertoire du projet, exécutez la commande : 
+     ```bash
+     git init
+     ```
+   - Créez une branche `main` et une branche `develop` :
+     ```bash
+     git checkout -b main
+     git checkout -b develop
+     ```
+
+3. **Créez un fichier `.gitignore`** :
+   - Ajoutez des règles pour ignorer les fichiers binaires, les fichiers temporaires, et les fichiers de configuration :
+     ```
+     *.db
+     go.mod
+     ```
+   - Commitez le fichier `.gitignore` :
+     ```bash
+     git add .gitignore
+     git commit -m "Ajout du fichier .gitignore"
+     ```
+
+4. **Initialisez un module Go** :
+   - Exécutez la commande suivante pour créer le module :
+     ```bash
+     go mod init weblist
+     ```
+
+5. **Créez un fichier `README.md`** :
+   - Ajoutez des informations de base sur le projet, incluant les instructions pour le cloner, l'installer, et l'exécuter.
+
+## Étape 2 : Structure des Dossiers
+
+1. **Créez les dossiers suivants** :
+   - `handlers/` : Pour les gestionnaires de routes.
+   - `models/` : Pour les définitions des structures de données.
+   - `static/` : Pour les fichiers statiques (CSS, JS).
+   - `templates/` : Pour les templates HTML.
+   - `database/` : Pour la gestion de la base de données.
+
+2. **Ajoutez des fichiers vides pour chaque dossier** :
+   - `handlers/login.go`
+   - `models/user.go`
+   - `static/styles.css`
+   - `templates/login.html`
+   - `database/db.go`
+
+3. **Créez une structure de fichiers claire** :
+   - Organisez le code pour que chaque fichier ait un rôle spécifique, facilitant la maintenance et l'extension du projet.
+
+## Étape 3 : Backend avec Go
+
+1. **Configurez la base de données SQLite** :
+   - Dans `database/db.go`, implémentez la logique pour initialiser la base de données SQLite.
+   - Créez les tables nécessaires pour les utilisateurs et les listes de courses.
+   - Exemple de table pour les utilisateurs :
+     ```sql
+     CREATE TABLE users (
+         uuid INTEGER PRIMARY KEY,
+         username TEXT NOT NULL UNIQUE,
+         password_hash TEXT NOT NULL
+     );
+     ```
+   - Hachez les mots de passe avec une fonction comme `bcrypt` avant de les stocker :
+     ```go
+     import "golang.org/x/crypto/bcrypt"
+
+     func HashPassword(password string) (string, error) {
+         bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+         return string(bytes), err
+     }
+
+     func CheckPasswordHash(password, hash string) bool {
+         err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+         return err == nil
+     }
+     ```
+
+2. **Implémentez les routes HTTP** :
+   - Ajoutez des gestionnaires de routes dans le dossier `handlers/` pour les fonctionnalités suivantes :
+     - Inscription (`/signup`)
+     - Connexion (`/login`)
+     - Gestion des listes de courses (`/lists`, `/lists/{id}`)
+
+3. **Gérez les sessions utilisateur** :
+   - Utilisez des cookies ou des tokens JWT pour l'authentification et la gestion des sessions utilisateur.
+   - Exemple avec un cookie :
+     ```go
+     http.SetCookie(w, &http.Cookie{
+         Name:     "session_token",
+         Value:    token,
+         Expires:  expirationTime,
+     })
+     ```
+
+## Étape 4 : Frontend avec HTML/CSS/JS
+
+1. **Créez des templates HTML** :
+   - Créez des templates pour les pages de connexion, d'inscription, et de gestion des listes.
+   - Utilisez le package `html/template` de Go pour injecter des données dynamiques dans les pages HTML.
+
+2. **Implémentez le style CSS** :
+   - Ajoutez des styles de base dans `static/styles.css` pour rendre l'interface utilisateur agréable et responsive.
+
+3. **Ajoutez du JavaScript pour l'interactivité** :
+   - Utilisez JavaScript pour des fonctionnalités dynamiques comme l'ajout/modification/suppression d'éléments de la liste de courses sans recharger la page.
+   - Exemple de code JavaScript pour l'ajout dynamique d'éléments :
+     ```javascript
+     document.getElementById("add-item").addEventListener("click", function() {
+         let newItem = document.createElement("li");
+         newItem.textContent = document.getElementById("item-input").value;
+         document.getElementById("shopping-list").appendChild(newItem);
+     });
+     ```
+
+## Étape 5 : Sauvegarde et Gestion des Erreurs
+
+1. **Ajoutez les tables nécessaires** :
+   - Créez les tables pour les utilisateurs et les listes dans la base de données SQLite si ce n'est pas déjà fait.
+
+2. **Gérez les erreurs avec des messages appropriés** :
+   - Implémentez une gestion des erreurs robuste avec des messages clairs pour l'utilisateur.
+   - Exemple de gestion d'erreur :
+     ```go
+     if err != nil {
+         http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+         return
+     }
+     ```
+
+## Étape 6 : Gestion des Utilisateurs et Permissions
+
+1. **Créez la page de profil utilisateur** :
+   - Permettez aux utilisateurs de modifier leurs informations, de changer leur mot de passe (avec vérification du mot de passe actuel), ou de supprimer leur compte.
+   - N'oubliez pas de hacher le nouveau mot de passe avant de le stocker dans la base de données.
+
+2. **Implémentez la logique de permissions pour les listes** :
+   - Chaque liste peut avoir différents niveaux d'accès : privé, partagé en lecture seule, ou partagé en modification.
+   - Utilisez une table intermédiaire pour gérer les permissions :
+     ```sql
+     CREATE TABLE list_permissions (
+         list_uuid INTEGER,
+         user_uuid INTEGER,
+         can_edit BOOLEAN,
+         FOREIGN KEY (list_id) REFERENCES lists(id),
+         FOREIGN KEY (user_id) REFERENCES users(id)
+     );
+     ```
+
+3. **Gérez les droits d'accès selon les permissions** :
+   - Vérifiez les permissions de l'utilisateur avant de lui permettre de voir ou de modifier une liste partagée.
+
+---
+
+Ce fichier Markdown fournit un guide étape par étape pour créer une application web de gestion de listes de courses avec Go. En suivant ces instructions, vous mettrez en œuvre un projet bien structuré, sécurisé, et maintenable.
